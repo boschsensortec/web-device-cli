@@ -232,9 +232,9 @@ function sendNextChunk(a) {
 
 function initContent(io) {
     io.println("\r\n\
-Welcome to Web Device CLI V0.1.0 (03/19/2019)\r\n\
+Welcome to Web Device CLI V1.0.0 (16/1/2026)\r\n\
 Copyright (C) 2019  makerdiary.\r\n\
-Copyright (C) 2023  Bosch Sensortec GmbH.\r\n\
+Copyright (C) 2026  Bosch Sensortec GmbH.\r\n\
 \r\n\
 This is a Web Command Line Interface via NUS (Nordic UART Service) using Web Bluetooth.\r\n\
 \r\n\
