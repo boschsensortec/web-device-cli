@@ -44,6 +44,14 @@ function updateBatteryLevel(level) {
     }
 }
 
+// Hides battery level indicator
+function hideBatteryIndicator() {
+    const batteryIndicator = document.getElementById("batteryIndicator");
+    if (batteryIndicator) {
+        batteryIndicator.style.display = 'none';
+    }
+}
+
 function connect() {
     if (!navigator.bluetooth) {
         console.log('WebBluetooth API is not available.\r\n' +
@@ -122,11 +130,7 @@ function disconnect() {
         bleDevice.gatt.disconnect();
         connected = false;
         setConnButtonState(false);
-        // Hide battery indicator on disconnect
-        const batteryIndicator = document.getElementById("batteryIndicator");
-        if (batteryIndicator) {
-            batteryIndicator.style.display = 'none';
-        }
+        hideBatteryIndicator();
         console.log('Bluetooth Device connected: ' + bleDevice.gatt.connected);
     } else {
         console.log('> Bluetooth Device is already disconnected');
@@ -137,17 +141,14 @@ function onDisconnected() {
     connected = false;
     window.term_.io.println('\r\n' + bleDevice.name + ' Disconnected.');
     setConnButtonState(false);
-    // Hide battery indicator on disconnect
-    const batteryIndicator = document.getElementById("batteryIndicator");
-    if (batteryIndicator) {
-        batteryIndicator.style.display = 'none';
-    }
-    // Clean up battery level event listener
+    hideBatteryIndicator();
+    // Clean up battery service references
     if (batteryLevelCharacteristic) {
         batteryLevelCharacteristic.removeEventListener('characteristicvaluechanged',
                                                        handleBatteryLevelChanged);
         batteryLevelCharacteristic = null;
     }
+    batteryService = null;
 }
 
 function readBatteryLevel() {
