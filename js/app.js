@@ -39,7 +39,7 @@ function setConnButtonState(enabled) {
 function updateBatteryLevel(level) {
     const batteryIndicator = document.getElementById("batteryIndicator");
     if (batteryIndicator) {
-        batteryIndicator.textContent = level + '%';
+        batteryIndicator.textContent = '🔋 ' + level + '%';
         batteryIndicator.style.display = 'block';
     }
 }
@@ -122,6 +122,11 @@ function disconnect() {
         bleDevice.gatt.disconnect();
         connected = false;
         setConnButtonState(false);
+        // Hide battery indicator on disconnect
+        const batteryIndicator = document.getElementById("batteryIndicator");
+        if (batteryIndicator) {
+            batteryIndicator.style.display = 'none';
+        }
         console.log('Bluetooth Device connected: ' + bleDevice.gatt.connected);
     } else {
         console.log('> Bluetooth Device is already disconnected');
@@ -136,6 +141,12 @@ function onDisconnected() {
     const batteryIndicator = document.getElementById("batteryIndicator");
     if (batteryIndicator) {
         batteryIndicator.style.display = 'none';
+    }
+    // Clean up battery level event listener
+    if (batteryLevelCharacteristic) {
+        batteryLevelCharacteristic.removeEventListener('characteristicvaluechanged',
+                                                       handleBatteryLevelChanged);
+        batteryLevelCharacteristic = null;
     }
 }
 
