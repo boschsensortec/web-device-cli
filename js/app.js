@@ -255,6 +255,13 @@ function setupHterm() {
         initContent(io);
         this.setCursorVisible(true);
         this.keyboard.characterEncoding = 'raw';
+        // Set terminal background and foreground for better contrast.
+        try {
+            this.scrollPort_.setBackgroundColor('#000000');
+            this.scrollPort_.setForegroundColor('#FFFFFF');
+        } catch (e) {
+            console.warn('Unable to set hterm colors:', e);
+        }
     };
     term.decorate(document.querySelector('#terminal'));
     term.installKeyboard();

@@ -7,9 +7,9 @@ body {
   height: 100%;
   width: 100%;
   overflow: hidden;
-  margin: 0px;
-  padding: 0px;
-  background: #31343A;
+  margin: 16px;
+  padding: 16px;
+  background: #000000;
 }
 #terminal {
   display: block;
@@ -25,7 +25,7 @@ body {
 
 #clientConnectButton {
   position:fixed;
-  background-color: #004A99;
+  background-color: #007bc0;
   border: none;
   border-radius: 8px;
   width: 120px;
