@@ -3,6 +3,8 @@
 const bleNusServiceUUID  = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 const bleNusCharRXUUID   = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
 const bleNusCharTXUUID   = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
+const bleBatteryServiceUUID = 0x180F;
+const bleBatteryLevelCharUUID = 0x2A19;
 const MTU = 20;
 
 var bleDevice;
@@ -10,6 +12,8 @@ var bleServer;
 var nusService;
 var rxCharacteristic;
 var txCharacteristic;
+var batteryService;
+var batteryLevelCharacteristic;
 
 var connected = false;
 
@@ -31,6 +35,15 @@ function setConnButtonState(enabled) {
     }
 }
 
+// Updates battery level display
+function updateBatteryLevel(level) {
+    const batteryIndicator = document.getElementById("batteryIndicator");
+    if (batteryIndicator) {
+        batteryIndicator.textContent = level + '%';
+        batteryIndicator.style.display = 'block';
+    }
+}
+
 function connect() {
     if (!navigator.bluetooth) {
         console.log('WebBluetooth API is not available.\r\n' +
@@ -41,7 +54,8 @@ function connect() {
     }
     console.log('Requesting Bluetooth Device...');
     navigator.bluetooth.requestDevice({
-        filters: [{services: [bleNusServiceUUID]}]
+        filters: [{services: [bleNusServiceUUID]}],
+        optionalServices: [bleBatteryServiceUUID]
     })
     .then(device => {
         bleDevice = device; 
@@ -85,6 +99,8 @@ function connect() {
         window.term_.io.println('\r\n' + bleDevice.name + ' Connected.');
         nusSendString('\r');
         setConnButtonState(true);
+        // Try to read battery level
+        readBatteryLevel();
     })
     .catch(error => {
         console.log('' + error);
@@ -116,6 +132,52 @@ function onDisconnected() {
     connected = false;
     window.term_.io.println('\r\n' + bleDevice.name + ' Disconnected.');
     setConnButtonState(false);
+    // Hide battery indicator on disconnect
+    const batteryIndicator = document.getElementById("batteryIndicator");
+    if (batteryIndicator) {
+        batteryIndicator.style.display = 'none';
+    }
+}
+
+function readBatteryLevel() {
+    if (!bleDevice || !bleDevice.gatt.connected) {
+        return;
+    }
+    
+    bleDevice.gatt.getPrimaryService(bleBatteryServiceUUID)
+    .then(service => {
+        batteryService = service;
+        console.log('Found Battery service');
+        return service.getCharacteristic(bleBatteryLevelCharUUID);
+    })
+    .then(characteristic => {
+        batteryLevelCharacteristic = characteristic;
+        console.log('Found Battery Level characteristic');
+        // Start notifications for battery level changes
+        return characteristic.startNotifications();
+    })
+    .then(() => {
+        console.log('Battery level notifications started');
+        batteryLevelCharacteristic.addEventListener('characteristicvaluechanged',
+                                                    handleBatteryLevelChanged);
+        // Read initial battery level
+        return batteryLevelCharacteristic.readValue();
+    })
+    .then(value => {
+        const batteryLevel = value.getUint8(0);
+        console.log('Battery Level: ' + batteryLevel + '%');
+        updateBatteryLevel(batteryLevel);
+    })
+    .catch(error => {
+        console.log('Battery Service not available: ' + error);
+        // Battery service is optional, so we don't show error to user
+    });
+}
+
+function handleBatteryLevelChanged(event) {
+    const batteryLevel = event.target.value.getUint8(0);
+    console.log('Battery Level changed: ' + batteryLevel + '%');
+    updateBatteryLevel(batteryLevel);
 }
 
 function handleNotifications(event) {
